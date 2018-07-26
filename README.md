@@ -5,3 +5,6 @@ In addition it sends the value of LDR sensor, and eventually turns two LEDs on, 
 
 ## Electronic circuit
 ![foto]("https://github.com/marcozecchini/SelfDrivingCar/blob/master/Images/Circuit.jpg")
+
+## Activity diagram
+![foto]("https://github.com/marcozecchini/SelfDrivingCar/blob/master/Images/ExecutionDiagram.jpg")
