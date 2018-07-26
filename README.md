@@ -1,5 +1,5 @@
 # SelfDrivingCar
-This project using an Arduino Uno aims to realize a car able both to drive both automatically and sending commands from a PC connected with the car through two Xbee devices.
+This project using an Arduino Uno aims to realize a car able both to drive both automatically and sending commands from a PC, using a Processing GUI, connected with the car through two Xbee devices.
 
 The code doesn't use the Arduino Libraries but it directly writes and reads from the ATMega328, the Arduino internal microcontroller, registers. 
 
