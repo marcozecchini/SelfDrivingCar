@@ -20,17 +20,8 @@
 unsigned int distanceFront, distanceLeft, frontLimit = 35;
 volatile int counter = 0;
 const byte frameStartByte = 0x7E;
-const byte frameTypeTXrequest = 0x10;
-const byte frameTypeRXpacket = 0x90;
-const byte frameTypeATcommand = 0x08;
-const byte frameTypeATresponse = 0x88;
-const long destAddressHigh = 0x13A200; //Serial number destination address high
-const long destAddressLow = 0x40F83371; //Serial number destination address low
-char DBcommand[ ] = "DB";
-bool automatic=false;
-byte ATcounter=0; // for identifying current AT command frame
-byte rssi=0; // RSSI value of last received packet
-bool RXpacket=false;
+bool automatic=false, back = false;
+
 
 /*
  * Auxiliary functions
@@ -71,6 +62,20 @@ ISR(USART_RX_vect) {
       {     
 
         set_speed(255,140);     
+      }
+      else if( ch == 'B')
+      {
+        set_speed(0,0);
+        if (!back)
+        {
+          back = true;
+          towardsBack();
+        }
+        else
+        {
+          back = false;
+          towardsFront();
+        }
       }
       else if  ( ch == 'P')
       { 
@@ -132,6 +137,19 @@ void set_speed (int left, int right){
   analogWrite(right_motor_enable_pin, right);
 }
 
+void towardsFront(){
+  digitalWrite(left_motor_1, HIGH);
+  digitalWrite(left_motor_2, LOW);
+  digitalWrite(right_motor_1, HIGH);
+  digitalWrite(right_motor_2, LOW);
+}
+
+void towardsBack(){
+  digitalWrite(left_motor_1, LOW);
+  digitalWrite(left_motor_2, HIGH);
+  digitalWrite(right_motor_1, LOW);
+  digitalWrite(right_motor_2, HIGH);
+}
 /*
  * Setup function
  */

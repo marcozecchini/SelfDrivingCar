@@ -60,8 +60,8 @@ void setup()
   ellipseMode(CENTER);
 
   println(Serial.list()); // print the list of all the ports
-  println(" Connecting to -> " + Serial.list()[1]);
-  myPort = new Serial(this, Serial.list()[1], 9600);
+  println(" Connecting to -> " + Serial.list()[0]);
+  myPort = new Serial(this, Serial.list()[0], 9600);
   myPort.clear(); // clear buffer
 }
 
@@ -73,7 +73,7 @@ void draw()
     val=decodeRXAPIpacket(val); // try to decode the received API framlle from XBEE
     light=val;// 3300 mV of reference voltage and 10 bit resolution (1024 levels)
     println(val);
-    println(light + " degrees C"); // Display message in Console8
+    println(light + " something"); // Display message in Console8
   }
   drawbuttonComents(); // Draw Turning buttons ON/OFF buttons
   drawLightDisplay();  // Draw Display box with temperatura value
@@ -97,7 +97,7 @@ void keyPressed() {
     letter="A";
     rect(rectX, rectY+rectSize, rectSize, rectSize);
   }
-    else if (key == 'S' || key == 's') {
+  else if (key == 'S' || key == 's') {
     formatTXAPIpacket((byte) 'S'); // Turn on LED
     println("S"); // print the list of all the ports
     fill(0);
@@ -111,7 +111,14 @@ void keyPressed() {
     letter="D";
     rect(rectX, rectY+rectSize*3, rectSize, rectSize);  
   }
-    else if (key == 'P' || key == 'p') {
+  else if( key == 'B' || key == 'b'){
+    formatTXAPIpacket((byte) 'B'); // go back
+    println("B"); // print the list of all the ports
+    fill(0);
+    letter="B";
+    rect(rectX, rectY+rectSize*10, rectSize, rectSize);  
+  }
+  else if (key == 'P' || key == 'p') {
     formatTXAPIpacket((byte) 'P'); // AUTOMATIC ON
     println("P, AUTOMATIC ON"); // print the list of all the ports
     fill(0);
@@ -154,7 +161,10 @@ void drawbuttonComents() {
             fill(0);
             rect(rectX, rectY+rectSize*3, rectSize, rectSize);  
         }
-        
+        if (letter.equals("B")){
+          fill(0);
+          rect(rectX, rectY+rectSize*10, rectSize, rectSize);  
+        }
         if(letter.equals("P")){
             fill(0);
             rect(rectX, rectY+rectSize*3, rectSize, rectSize); 
@@ -168,7 +178,8 @@ void drawbuttonComents() {
   text("Turn Left (or press 'A' or 'a')", rectX+rectSize, rectY+rectSize); 
   text("Turn Right (or press 'D' or 'd')", rectX+rectSize, rectY+rectSize*3);
   text("Turn Front (or press 'W' or 'w')", rectX+rectSize, rectY+rectSize*6); 
-  text("Stop (or press 'S' or 's')", rectX+rectSize, rectY+rectSize*8);  
+  text("Stop (or press 'S' or 's')", rectX+rectSize, rectY+rectSize*8);
+  text("Back (o press 'B' or 'b')", rectX+rectSize, rectY+rectSize*10);
 }
 
 
