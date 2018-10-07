@@ -12,10 +12,11 @@ int portIndex = 2; // WARNING: Set this to the port connected to XBEE Explorer (
 byte frameStartByte = 0x7E;
 byte frameTypeTXrequest = 0x10;
 int destAddressHigh = 0x13A200;
-int destAddressLow = 0x40A0CF25;
+int destAddressLow = 0x40F8337E;
 int val; // Data received from the serial port
 float light=-9;
 int rssi=100;
+int counter = 0;
 
 float min_radius=0;
 float max_radius=0;
@@ -59,8 +60,8 @@ void setup()
   ellipseMode(CENTER);
 
   println(Serial.list()); // print the list of all the ports
-  println(" Connecting to -> " + Serial.list()[0]);
-  myPort = new Serial(this, Serial.list()[0], 9600);
+  println(" Connecting to -> " + Serial.list()[1]);
+  myPort = new Serial(this, Serial.list()[1], 9600);
   myPort.clear(); // clear buffer
 }
 
@@ -77,9 +78,6 @@ void draw()
   drawbuttonComents(); // Draw Turning buttons ON/OFF buttons
   drawLightDisplay();  // Draw Display box with temperatura value
   drawDistanceDisplay();  // Draw Display box with temperatura value
-  drawRSSIdisplay();
-  drawRadiusDisplay();  // Draw Display box with temperatura value
-
 }
 
 void keyPressed() {
@@ -170,7 +168,7 @@ void drawbuttonComents() {
   text("Turn Left (or press 'A' or 'a')", rectX+rectSize, rectY+rectSize); 
   text("Turn Right (or press 'D' or 'd')", rectX+rectSize, rectY+rectSize*3);
   text("Turn Front (or press 'W' or 'w')", rectX+rectSize, rectY+rectSize*6); 
-  text("Turn Back (or press 'S' or 's')", rectX+rectSize, rectY+rectSize*8);  
+  text("Stop (or press 'S' or 's')", rectX+rectSize, rectY+rectSize*8);  
 }
 
 
@@ -183,48 +181,24 @@ void drawLightDisplay() {
   text(light + " somtehing", width/2+18, posY+40);
 }
 
-void drawRSSIdisplay() {
-  // show last RSSI value inside a rectangle:
-  fill(0);
-  text("RSSI of Remote XBEE", width/2+15, posY+70);
-  rect(width/2, posY+80, 120, 30, 7);
-  fill(255);  // write text in white
-  text("-" + rssi + " dBm", width/2+18, posY+100); // Value stored in rssi is |rssi| -> real value is negative   
-}
 
 void drawDistanceDisplay() {
-  // show distanceLeft
+  // show distanceFront
   fill(0);
-  text("distanceLeft", width/2-150, posY+10);
+  text("distanceFront", width/2-150, posY+10);
   rect(width/2-165, posY+20, 120, 30, 7);
   fill(255);  // write text in white
-  text(distanceLeft + " cm", width/2-153, posY+40);
+  text(distanceFront + " cm", width/2-153, posY+40);
   
-  // show distanceRight
+  // show distanceLeft
   fill(0);
-  text("distanceFront", width/2-150, posY+70);
+  text("distanceLeft", width/2-150, posY+70);
   rect(width/2-165, posY+80, 120, 30, 7);
   fill(255);  // write text in white
-  text(distanceFront + " cm", width/2-153, posY+100);
+  text(distanceLeft + " cm", width/2-153, posY+100);
   
 }
 
-void drawRadiusDisplay() {
-  // show Min Radius
-  fill(0);
-  text("Paper Radius", width/2-150, posY+140);
-  rect(width/2-165, posY+150, 120, 30, 7);
-  fill(255);  // write text in white
-  text(min_radius + " meters", width/2-153, posY+170);
-  
-  // show Max Radius
-  fill(0);
-  text("Aproximate Radius", width/2-150, posY+200);
-  rect(width/2-165, posY+210, 120, 30, 7);
-  fill(255);  // write text in white
-  text(max_radius + " meters", width/2-153, posY+230);
-  
-}
 
 void formatTXAPIpacket(byte value) {
   // Transmit key pressed using XBEE API frame
@@ -290,46 +264,35 @@ void formatTXAPIpacket(byte value) {
 }
 
 int decodeRXAPIpacket(int val) {
-  // Function for decoding the received API frame from XBEE
-  int rxvalue=0;
-
-  while (myPort.read () != frameStartByte) {
-    if (myPort.available()==0)
-      return val; // No API frame present.
+  if (counter < 2){
+    counter += 1;
+    return 0;
   }
-
-  // Skip over the bytes in the API frame we don't care about (length, frame type, addresses, receive options)
-  for (int i = 0; i < 14; i++) {
-    myPort.read();
+  else{
+    counter = 0;
+    // Function for decoding the received API frame from XBEE
+    int rxvalue=0;
+  
+    while (myPort.read () != frameStartByte) {
+      if (myPort.available()==0)
+        return val; // No API frame present.
+    }
+  
+    // The next two bytes represent the ADC measurement sent from the remote XBEE
+    rxvalue = myPort.read() * 256; // add the most significant byte
+    rxvalue += myPort.read(); // read the least significant byte
+  
+    // The next two bytes represent LEFT DISTANCE measurement sent from the remote XBEE
+    distanceLeft = myPort.read() * 256; // add the most significant byte
+    distanceLeft += myPort.read(); // read the least significant byte
+    println("Left Dist value:"+distanceLeft);
+    
+    // The next two bytes represent FRONT DISTANCE measurement sent from the remote XBEE
+    distanceFront = myPort.read() * 256; // add the most significant byte
+    distanceFront += myPort.read(); // read the least significant byte
+    println("Front Dist value:"+distanceFront);
+      
+    myPort.read(); // Read  the last byte (Checksum) but don't store it
+    return rxvalue;
   }
-  // The next two bytes represent the ADC measurement sent from the remote XBEE
-  rxvalue = myPort.read() * 256; // add the most significant byte
-  rxvalue += myPort.read(); // read the least significant byte
-
-  // The next two bytes represent LEFT DISTANCE measurement sent from the remote XBEE
-  distanceLeft = myPort.read() * 256; // add the most significant byte
-  distanceLeft += myPort.read(); // read the least significant byte
-  println("Left Dist value:"+distanceLeft);
-  
-  // The next two bytes represent FRONT DISTANCE measurement sent from the remote XBEE
-  distanceFront = myPort.read() * 256; // add the most significant byte
-  distanceFront += myPort.read(); // read the least significant byte
-  println("Front Dist value:"+distanceFront);
-
-  // The next byte represents the rssi measurement sent from the remote XBEE
-  rssi = myPort.read();
-  println("RSSI value:"+rssi);
-  min_radius=compute_distance(rssi,true);
-  max_radius=compute_distance(rssi,false);
-  
-  myPort.read(); // Read  the last byte (Checksum) but don't store it
-  return rxvalue;
-}
-
-float compute_distance(int rssi, boolean p)
-{
-  if(p && rssi%2==0)
-    return float(String.format("%.3g%n", pow(10,((meter_dist1+rssi)/(10*sig_expon1)))));
-  else
-    return float(String.format("%.3g%n", pow(10,((meter_dist+rssi)/(10*sig_expon)))));
 }
