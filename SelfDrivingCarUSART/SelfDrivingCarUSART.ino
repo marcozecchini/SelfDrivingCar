@@ -1,3 +1,7 @@
+#define WITHOUT_REGISTER
+
+#ifdef WITHOUT_REGISTER
+
 #define ldr_sensor  A0
 #define led 3
 #define echo_front 2
@@ -10,6 +14,49 @@
 #define right_motor_enable_pin 11
 #define right_motor_1 12
 #define right_motor_2 13
+
+#else
+
+#define ldr_sensor  A0
+#define led 3
+#define echo_front 2
+#define trigger_front 9
+#define echo_left 8
+#define trigger_left 10
+#define left_motor_enable_pin 5
+#define left_motor_1 7
+#define left_motor_2 6
+#define right_motor_enable_pin 11
+#define right_motor_1 12
+#define right_motor_2 13
+
+#define ldr_sensor  A0
+#define D_led DDD3
+#define D_echo_front DDD2
+#define D_trigger_front DDB1
+#define D_echo_left DDB0
+#define D_trigger_left DDB2
+#define D_left_motor_enable_pin DDD5
+#define D_left_motor_1 DDD7
+#define D_left_motor_2 DDD6
+#define D_right_motor_enable_pin DDB3
+#define D_right_motor_1 DDB4
+#define D_right_motor_2 DDB5
+
+#define P_led PORTD3
+#define P_echo_front PORTD2
+#define P_trigger_front PORTB1
+#define P_echo_left PORTB0
+#define P_trigger_left PORTB2
+#define P_left_motor_enable_pin PORTD5
+#define P_left_motor_1 PORTD7
+#define P_left_motor_2 PORTD6
+#define P_right_motor_enable_pin PORTB3
+#define P_right_motor_1 PORTB4
+#define P_right_motor_2 PORTB5
+#endif
+
+
 #define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
 #define BAUD_RATE 9600
 #define BAUD_RATE_DIVISOR (F_CPU / 16 / BAUD_RATE - 1)
@@ -138,24 +185,35 @@ void set_speed (int left, int right){
 }
 
 void towardsFront(){
+  #ifdef WITHOUT_REGISTER
   digitalWrite(left_motor_1, HIGH);
   digitalWrite(left_motor_2, LOW);
   digitalWrite(right_motor_1, HIGH);
   digitalWrite(right_motor_2, LOW);
+  #else
+  PORTD = 1<<P_left_motor_enable_pin | 1<<P_left_motor_1 | 0<<P_left_motor_2;
+  PORTB = 1<<P_right_motor_enable_pin | 1<<P_right_motor_1 | 0<<P_right_motor_2;
+  #endif
 }
 
 void towardsBack(){
+  #ifdef WITHOUT_REGISTER
   digitalWrite(left_motor_1, LOW);
   digitalWrite(left_motor_2, HIGH);
   digitalWrite(right_motor_1, LOW);
   digitalWrite(right_motor_2, HIGH);
+  #else
+  PORTD = 1<<P_left_motor_enable_pin | 0<<P_left_motor_1 | 1<<P_left_motor_2;
+  PORTB = 1<<P_right_motor_enable_pin | 0<<P_right_motor_1 | 1<<P_right_motor_2;
+  #endif
 }
 /*
  * Setup function
  */
 void setup() {
   USART_init();
- 
+
+  #ifdef WITHOUT_REGISTER
   //Initialize Front Sensor pins
   pinMode(echo_front, INPUT);
   pinMode(trigger_front, OUTPUT);
@@ -185,6 +243,17 @@ void setup() {
   // initialize led output connected to LDR
   pinMode(led, OUTPUT);
 
+  #else
+
+  //initialize pins
+  DDRD = 0<<D_echo_front | 1<<D_left_motor_enable_pin | 1<<D_left_motor_1 | 1<<D_left_motor_2 | 1<<D_led;
+  DDRB = 1<<D_trigger_front | 0<<D_echo_left | 1<<D_trigger_left | 1<<D_right_motor_enable_pin | 1<<D_right_motor_1 | 1<<D_right_motor_2;
+
+  //set properly the motors
+  PORTD = 1<<P_left_motor_enable_pin | 1<<P_left_motor_1 | 0<<P_left_motor_2;
+  PORTB = 1<<P_right_motor_enable_pin | 1<<P_right_motor_1 | 0<<P_right_motor_2;
+  
+  #endif
 }
 
 /*
@@ -203,6 +272,8 @@ void loop() {
       set_speed(255-distanceLeft+25, 255); // go to the left, decrease left, left right
     else if(distanceLeft<10) //If I am too close to the wall I need to go farther
       set_speed(255, 255+distanceLeft-50); //go to the right, decrease right, increase left
+    else
+      set_speed(200,200);
   }
   else {
     if (distanceFront < frontLimit)
@@ -210,11 +281,21 @@ void loop() {
   }
   //measurement of ldr sensor
   unsigned int ldr_value = analogRead(ldr_sensor);
+  #ifdef WITHOUT_REGISTER
+  
   if (ldr_value < 80)
       digitalWrite(led, HIGH);
   else
       digitalWrite(led, LOW);
+      
+  #else
   
+    if (ldr_value < 80)
+      PORTD = PORTD | (1<<P_led);
+  else
+      PORTD = PORTD &~(1<<P_led);
+      
+  #endif
   sendMessage(ldr_value);
     
   delay(500);

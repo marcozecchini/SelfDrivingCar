@@ -60,8 +60,8 @@ void setup()
   ellipseMode(CENTER);
 
   println(Serial.list()); // print the list of all the ports
-  println(" Connecting to -> " + Serial.list()[0]);
-  myPort = new Serial(this, Serial.list()[0], 9600);
+  println(" Connecting to -> " + Serial.list()[1]);
+  myPort = new Serial(this, Serial.list()[1], 9600);
   myPort.clear(); // clear buffer
 }
 
