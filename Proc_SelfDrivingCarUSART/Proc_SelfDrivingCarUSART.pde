@@ -60,8 +60,8 @@ void setup()
   ellipseMode(CENTER);
 
   println(Serial.list()); // print the list of all the ports
-  println(" Connecting to -> " + Serial.list()[1]);
-  myPort = new Serial(this, Serial.list()[1], 9600);
+  println(" Connecting to -> " + "COM7");
+  myPort = new Serial(this, "COM7", 9600);
   myPort.clear(); // clear buffer
 }
 
@@ -72,7 +72,6 @@ void draw()
   if (myPort.available() >= 23) { // Wait until we have a mouthful of data
     val=decodeRXAPIpacket(val); // try to decode the received API framlle from XBEE
     light=val;// 3300 mV of reference voltage and 10 bit resolution (1024 levels)
-    println(val);
     println(light + " something"); // Display message in Console8
   }
   drawbuttonComents(); // Draw Turning buttons ON/OFF buttons

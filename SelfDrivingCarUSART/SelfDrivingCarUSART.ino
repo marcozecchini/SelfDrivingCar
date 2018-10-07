@@ -1,4 +1,4 @@
-#define WITHOUT_REGISTER
+//#define WITHOUT_REGISTER
 
 #ifdef WITHOUT_REGISTER
 
@@ -68,6 +68,7 @@ unsigned int distanceFront, distanceLeft, frontLimit = 35;
 volatile int counter = 0;
 const byte frameStartByte = 0x7E;
 bool automatic=false, back = false;
+unsigned int ldr_value;
 
 
 /*
@@ -207,6 +208,14 @@ void towardsBack(){
   PORTB = 1<<P_right_motor_enable_pin | 0<<P_right_motor_1 | 1<<P_right_motor_2;
   #endif
 }
+
+#ifndef WITHOUT_REGISTER
+ISR(ADC_vect)  // include the name of the interrupt vector
+{
+    ldr_value = ADC;          // in this case 10 bits are being used but only needs to read the high value for 8 bit precision
+}
+#endif
+
 /*
  * Setup function
  */
@@ -252,6 +261,10 @@ void setup() {
   //set properly the motors
   PORTD = 1<<P_left_motor_enable_pin | 1<<P_left_motor_1 | 0<<P_left_motor_2;
   PORTB = 1<<P_right_motor_enable_pin | 1<<P_right_motor_1 | 0<<P_right_motor_2;
+
+  ADMUX = 0<<REFS1 | 1<<REFS0 | 0<<ADLAR | 0<<MUX3 | 0<<MUX2 | 0<<MUX1 | 0<<MUX0;; // Voltage reference for ADC=AVCC (5.0V); configurar ADLAR para right adjust for 10 bit resolution, select ADC0 (pino A0),
+  ADCSRA = 1<<ADEN | 1<<ADSC | 1<<ADATE | 1<<ADIE | 1<<ADPS2 | 1<<ADPS1 | 1<<ADPS0;  // Enable ADC (ADEN), Start ADC conversion (ADSC) , Enable Auto Trigger, enable ADC Interrupts,  configure ADPS2-0 for 128 prescale ( resulta numa frequência 16MHz/128=125kHz)
+  //ADCSRB = 0<<ACME; // free running mode, (leave ACME as 0).
   
   #endif
 }
@@ -280,8 +293,9 @@ void loop() {
       automatic = true;
   }
   //measurement of ldr sensor
-  unsigned int ldr_value = analogRead(ldr_sensor);
+  
   #ifdef WITHOUT_REGISTER
+  ldr_value = analogRead(ldr_sensor);
   
   if (ldr_value < 80)
       digitalWrite(led, HIGH);
