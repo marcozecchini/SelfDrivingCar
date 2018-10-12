@@ -279,18 +279,15 @@ void loop() {
 
   if(automatic){
     if(distanceFront<frontLimit) //If I am too close
-      set_speed(255, distanceFront*3);
-    else if(distanceLeft>=30) //If I am too far from the wall I need to go closer
+      set_speed(255, distanceFront*2);
+    else if(distanceLeft>=35) //If I am too far from the wall I need to go closer
       set_speed(255-distanceLeft+25, 255); // go to the left, decrease left, left right
-    else if(distanceLeft<10) //If I am too close to the wall I need to go farther
-      set_speed(255, 255+distanceLeft-50); //go to the right, decrease right, increase left
+    else if(distanceLeft<13) //If I am too close to the wall I need to go farther
+      set_speed(255, 125); //go to the right, decrease right, increase left
     else
       set_speed(200,200);
   }
-  else {
-    if (distanceFront < frontLimit)
-      automatic = true;
-  }
+
   //measurement of ldr sensor
   
   #ifdef WITHOUT_REGISTER
