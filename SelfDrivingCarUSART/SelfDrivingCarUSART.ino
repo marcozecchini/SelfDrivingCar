@@ -262,7 +262,7 @@ void setup() {
   PORTD = 1<<P_left_motor_enable_pin | 1<<P_left_motor_1 | 0<<P_left_motor_2;
   PORTB = 1<<P_right_motor_enable_pin | 1<<P_right_motor_1 | 0<<P_right_motor_2;
 
-  ADMUX = 0<<REFS1 | 1<<REFS0 | 0<<ADLAR | 0<<MUX3 | 0<<MUX2 | 0<<MUX1 | 0<<MUX0;; // Voltage reference for ADC=AVCC (5.0V); configurar ADLAR para right adjust for 10 bit resolution, select ADC0 (pino A0),
+  ADMUX = 0<<REFS1 | 1<<REFS0 | 0<<ADLAR | 0<<MUX3 | 0<<MUX2 | 0<<MUX1 | 0<<MUX0;; // Voltage reference for ADC=AVCC (5.0V); configure ADLAR for right adjust for 10 bit resolution, select ADC0 (pin A0),
   ADCSRA = 1<<ADEN | 1<<ADSC | 1<<ADATE | 1<<ADIE | 1<<ADPS2 | 1<<ADPS1 | 1<<ADPS0;  // Enable ADC (ADEN), Start ADC conversion (ADSC) , Enable Auto Trigger, enable ADC Interrupts,  configure ADPS2-0 for 128 prescale ( frequency 16MHz/128=125kHz)
   
   #endif
@@ -273,8 +273,6 @@ void setup() {
  */
 void loop() {
   distanceFront = get_distance(trigger_front, echo_front);
-  USART_transmit(distanceFront);
-
   distanceLeft = get_distance(trigger_left, echo_left);
 
   if(automatic){
