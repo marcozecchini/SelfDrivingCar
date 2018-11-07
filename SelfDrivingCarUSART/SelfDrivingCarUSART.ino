@@ -164,7 +164,7 @@ void sendMessage(int value){
   USART_transmit( 0xFF - ( sum & 0xFF));
 
   // Pause to let the microcontroller settle down if needed
-  delay(50);  
+  my_delay(50);  
 }
 
 unsigned int get_distance(int trigger, int echo){
@@ -195,6 +195,18 @@ void towardsFront(){
   PORTD = 1<<P_left_motor_enable_pin | 1<<P_left_motor_1 | 0<<P_left_motor_2;
   PORTB = 1<<P_right_motor_enable_pin | 1<<P_right_motor_1 | 0<<P_right_motor_2;
   #endif
+}
+
+void my_delay(unsigned long ms){
+  uint32_t start = micros();
+
+  while (ms > 0) {
+    yield();
+    while ( ms > 0 && (micros() - start) >= 1000) {
+      ms--;
+      start += 1000;
+    }
+  }  
 }
 
 void towardsBack(){
@@ -306,5 +318,5 @@ void loop() {
   #endif
   sendMessage(ldr_value);
     
-  delay(500);
+  my_delay(200);
 }
