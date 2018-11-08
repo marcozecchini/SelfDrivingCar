@@ -64,7 +64,7 @@
 /*
  * Global variables
  */
-unsigned int distanceFront, distanceLeft, frontLimit = 35;
+unsigned int distanceFront, distanceLeft, tempLeft = 0, frontLimit = 35;
 volatile int counter = 0;
 const byte frameStartByte = 0x7E;
 bool automatic=false, back = false;
@@ -164,7 +164,7 @@ void sendMessage(int value){
   USART_transmit( 0xFF - ( sum & 0xFF));
 
   // Pause to let the microcontroller settle down if needed
-  my_delay(50);  
+  delay(50);  
 }
 
 unsigned int get_distance(int trigger, int echo){
@@ -195,18 +195,6 @@ void towardsFront(){
   PORTD = 1<<P_left_motor_enable_pin | 1<<P_left_motor_1 | 0<<P_left_motor_2;
   PORTB = 1<<P_right_motor_enable_pin | 1<<P_right_motor_1 | 0<<P_right_motor_2;
   #endif
-}
-
-void my_delay(unsigned long ms){
-  uint32_t start = micros();
-
-  while (ms > 0) {
-    yield();
-    while ( ms > 0 && (micros() - start) >= 1000) {
-      ms--;
-      start += 1000;
-    }
-  }  
 }
 
 void towardsBack(){
@@ -285,7 +273,8 @@ void setup() {
  */
 void loop() {
   distanceFront = get_distance(trigger_front, echo_front);
-  distanceLeft = get_distance(trigger_left, echo_left);
+  tempLeft = get_distance(trigger_left, echo_left);
+  if (tempLeft < 1000) distanceLeft = tempLeft;
 
   if(automatic){
     if(distanceFront<frontLimit) //If I am too close
@@ -318,5 +307,5 @@ void loop() {
   #endif
   sendMessage(ldr_value);
     
-  my_delay(200);
+  delay(200);
 }
